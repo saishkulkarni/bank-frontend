@@ -14,7 +14,7 @@ export default function Transfer() {
     setLoading(true);
 
     try {
-      await api.post("/api/v1/user/transafer", {
+      await api.post("/api/v1/user/transfer", {
         toAccountNumber,
         amount,
       });

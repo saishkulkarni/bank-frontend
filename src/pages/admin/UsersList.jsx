@@ -17,9 +17,16 @@ export default function UsersList() {
 
     try {
       const res = await api.get("/api/v1/admin/users");
-      setUsers(res.data.data);
-    } catch {
-      // handled globally
+
+      console.log("RAW USERS RESPONSE:", res.data);
+
+      // Backend returns ARRAY directly
+      const arr = Array.isArray(res.data) ? res.data : [];
+
+      setUsers(arr);
+    } catch (err) {
+      console.log("ERROR USERS:", err);
+      setUsers([]);
     } finally {
       setLoading(false);
     }

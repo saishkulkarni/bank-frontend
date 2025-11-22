@@ -1,13 +1,18 @@
 <!DOCTYPE html>
-<html data-bs-theme="dark">
+<html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Bank App</title>
-  </head>
-  <body class="bg-dark text-light">
-    <div id="root"></div>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>E-Banking</title>
+
+    <!-- REQUIRED for Razorpay -->
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  </head>
+
+  <body>
+    <div id="root"></div>
+
+    <!-- Vite loads your React bundle here -->
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

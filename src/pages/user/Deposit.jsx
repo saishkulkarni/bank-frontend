@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import api from "../../services/api";
 
 export default function Deposit() {
@@ -7,42 +8,97 @@ export default function Deposit() {
   const [amount, setAmount] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function startDeposit(e) {
+  // Load Razorpay script dynamically
+  function loadRazorpayScript() {
+    return new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+
+      document.body.appendChild(script);
+    });
+  }
+
+  async function startPayment(e) {
     e.preventDefault();
+
+    if (!amount || amount <= 0) {
+      toast.error("Enter a valid amount!", { theme: "dark" });
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const res = await api.patch("/api/v1/user/deposit", { amount });
-      const details = res.data.data; // RazorpayDto
+      // 1) Load Razorpay script
+      const scriptLoaded = await loadRazorpayScript();
+      if (!scriptLoaded) {
+        toast.error("Failed to load Razorpay!", { theme: "dark" });
+        setLoading(false);
+        return;
+      }
 
-      openRazorpay(details);
-    } catch {
+      // 2) Initialize backend order
+      const res = await api.patch("/api/v1/user/deposit", {
+        amount: Number(amount),
+      });
+
+      console.log("INIT RESPONSE:", res.data);
+
+      const paymentData = res.data.data || res.data;
+
+      if (!paymentData?.orderId) {
+        toast.error("Order creation failed!", { theme: "dark" });
+        return;
+      }
+
+      const options = {
+        key: paymentData.key,
+        amount: paymentData.amount,
+        currency: paymentData.currency,
+        name: "E-Banking Deposit",
+        description: "Deposit Money",
+        order_id: paymentData.orderId,
+
+        handler: async function (response) {
+          try {
+            await api.post(
+              `/api/v1/user/confirm-deposit?amount=${paymentData.amount}&razorpay_payment_id=${response.razorpay_payment_id}`
+            );
+
+            toast.success("Deposit Successful 🎉", { theme: "dark" });
+            navigate("/user/dashboard");
+          } catch (err) {
+            toast.error("Payment verification failed!", { theme: "dark" });
+          }
+        },
+
+        prefill: {
+          name: "User",
+          email: "user@example.com",
+          contact: "9999999999",
+        },
+
+        theme: {
+          color: "#3399cc",
+        },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (err) {
+      console.log(err);
+      toast.error("Payment error!", { theme: "dark" });
     } finally {
       setLoading(false);
     }
   }
 
-  function openRazorpay(optionsFromServer) {
-    const options = {
-      key: optionsFromServer.key,
-      amount: optionsFromServer.amount,
-      currency: optionsFromServer.currency,
-      name: "Online Banking",
-      description: "Deposit Amount",
-      order_id: optionsFromServer.orderId,
-
-      callback_url: `/api/v1/user/confirm-deposit?amount=${optionsFromServer.amount}`,
-
-      theme: { color: "#3399cc" },
-    };
-
-    const rzp = new window.Razorpay(options);
-    rzp.open();
-  }
-
   return (
     <div style={{ background: "#0d1117", minHeight: "100vh" }}>
-      {/* NAV */}
+      {/* NAVBAR */}
       <nav
         className="navbar navbar-dark px-4"
         style={{ background: "#161b22", borderBottom: "1px solid #30363d" }}
@@ -63,29 +119,33 @@ export default function Deposit() {
 
       {/* FORM */}
       <div className="container py-5">
-        <div
-          className="p-4 mx-auto rounded shadow-lg text-light"
+        <form
+          className="mx-auto p-4 rounded text-light"
           style={{
-            maxWidth: "600px",
+            maxWidth: "500px",
             background: "#161b22",
             border: "1px solid #30363d",
+            boxShadow: "0 0 20px rgba(88,166,255,0.2)",
           }}
+          onSubmit={startPayment}
         >
-          <form onSubmit={startDeposit}>
-            <label className="form-label">Enter Amount</label>
-            <input
-              type="number"
-              className="form-control mb-3 bg-secondary text-light border-dark"
-              placeholder="Amount"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-            />
+          <label className="form-label">Enter Amount</label>
 
-            <button className="btn btn-info w-100" disabled={loading}>
-              {loading ? "Initializing..." : "Proceed to Pay"}
-            </button>
-          </form>
-        </div>
+          <input
+            type="number"
+            className="form-control mb-3 bg-dark text-light border-secondary"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            placeholder="Enter amount"
+          />
+
+          <button
+            className="btn btn-success w-100 fw-semibold"
+            disabled={loading}
+          >
+            {loading ? "Processing..." : "Proceed to Pay"}
+          </button>
+        </form>
       </div>
     </div>
   );

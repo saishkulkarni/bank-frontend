@@ -15,7 +15,6 @@ api.interceptors.request.use((config) => {
 
 api.interceptors.response.use(
   (res) => {
-    // Success response from backend (2xx)
     if (res.data?.message) {
       toast.success(res.data.message);
     }

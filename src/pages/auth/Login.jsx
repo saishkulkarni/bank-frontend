@@ -18,8 +18,6 @@ export default function Login() {
       const res = await api.post("/api/v1/auth/login", { email, password });
       const { token, user } = res.data;
 
-      toast.success("Welcome back 🎉", { theme: "dark" });
-
       saveAuth(token, user);
 
       if (user.role === "ADMIN") navigate("/admin/dashboard");

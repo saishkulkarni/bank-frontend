@@ -5,6 +5,8 @@ import api from "../../services/api";
 export default function Transactions() {
   const { accountNumber } = useParams();
   const navigate = useNavigate();
+  const searchParams = new URLSearchParams(location.search);
+  const email = searchParams.get("email");
 
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -18,7 +20,7 @@ export default function Transactions() {
 
     try {
       const res = await api.get(`/api/v1/admin/transactions/${accountNumber}`);
-      setList(res.data.data);
+      setList(res.data);
     } catch {
       // globally handled
     } finally {
@@ -35,9 +37,7 @@ export default function Transactions() {
       >
         <button
           className="btn btn-outline-info fw-semibold"
-          onClick={() =>
-            navigate(`/admin/user/${localStorage.getItem("last_email")}`)
-          }
+          onClick={() => navigate(`/admin/user/${email}`)}
         >
           ⬅ Back
         </button>
@@ -93,21 +93,23 @@ export default function Transactions() {
                   </p>
 
                   <p className="mb-1 opacity-75">
-                    <strong>Before:</strong> ₹{tx.prevBalance}
+                    <strong>Before:</strong> ₹{tx.balanceBeforeTransaction}
                   </p>
 
                   <p className="mb-1 opacity-75">
-                    <strong>After:</strong> ₹{tx.newBalance}
+                    <strong>After:</strong> ₹{tx.balanceAfterTransaction}
                   </p>
 
                   <p className="mb-1 opacity-75">
-                    <strong>ID:</strong> {tx.transactionId || "N/A"}
+                    <strong>ID:</strong> {tx.payment_id || "N/A"}
                   </p>
 
                   <p className="mb-1 opacity-75">
                     <strong>Date:</strong>{" "}
-                    {tx.timestamp
-                      ? new Date(tx.timestamp).toLocaleString()
+                    {tx.timestamp || tx.createdTime
+                      ? new Date(
+                          tx.timestamp || tx.createdTime
+                        ).toLocaleString()
                       : "Not Available"}
                   </p>
                 </div>

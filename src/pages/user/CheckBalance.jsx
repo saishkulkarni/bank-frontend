@@ -4,8 +4,9 @@ import api from "../../services/api";
 
 export default function CheckBalance() {
   const navigate = useNavigate();
-  const [balance, setBalance] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [balance, setBalance] = useState(null);
+  const [accountNumber, setAccountNumber] = useState(null);
 
   useEffect(() => {
     loadBalance();
@@ -15,8 +16,14 @@ export default function CheckBalance() {
     setLoading(true);
     try {
       const res = await api.get("/api/v1/user/bank-balance");
-      setBalance(res.data.data); // contains { accountNumber, balance }
-    } catch {
+
+      console.log("CHECK BAL RAW:", res.data);
+
+      // backend returns plain object: { accountNumber: ___, balance: ___ }
+      setBalance(res.data.balance);
+      setAccountNumber(res.data.accountNumber);
+    } catch (err) {
+      console.log("ERROR:", err);
       setBalance(null);
     } finally {
       setLoading(false);
@@ -25,7 +32,6 @@ export default function CheckBalance() {
 
   return (
     <div style={{ background: "#0d1117", minHeight: "100vh" }}>
-      {/* NAV */}
       <nav
         className="navbar navbar-dark px-4"
         style={{ background: "#161b22", borderBottom: "1px solid #30363d" }}
@@ -45,29 +51,36 @@ export default function CheckBalance() {
       </nav>
 
       <div className="container py-5">
+        <h3
+          className="text-center fw-bold mb-4"
+          style={{ color: "#79c0ff", letterSpacing: "1px" }}
+        >
+          Account Balance
+        </h3>
+
         {loading ? (
           <p className="text-center text-light fs-5">Loading...</p>
-        ) : !balance ? (
+        ) : balance === null ? (
           <p className="text-center text-secondary fs-5">
-            Unable to fetch balance.
+            Unable to fetch balance. Please retry.
           </p>
         ) : (
           <div
-            className="p-4 mx-auto rounded text-light shadow-lg"
+            className="p-4 rounded-4 text-light shadow-lg mx-auto"
             style={{
-              maxWidth: "500px",
+              width: "400px",
               background: "#161b22",
               border: "1px solid #30363d",
-              boxShadow: "0 0 20px rgba(88,166,255,0.3)",
+              boxShadow: "0px 0px 25px rgba(0,255,255,0.1)",
             }}
           >
-            <h4 className="fw-bold mb-3" style={{ color: "#79c0ff" }}>
-              Account #{balance.accountNumber}
-            </h4>
+            <h5 style={{ color: "#58a6ff" }} className="fw-bold text-center">
+              Account #{accountNumber}
+            </h5>
 
-            <h2 className="fw-bold" style={{ color: "#2ea043" }}>
-              ₹ {balance.balance}
-            </h2>
+            <p className="text-center mt-4 fs-4 fw-bold text-success">
+              ₹ {balance}
+            </p>
           </div>
         )}
       </div>

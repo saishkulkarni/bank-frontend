@@ -17,9 +17,13 @@ export default function UserDashboard() {
     setLoading(true);
     try {
       const res = await api.get("/api/v1/user/account/bank");
-      setAccount(res.data.data);
+
+      // backend returns raw object
+      const raw = res.data;
+
+      setAccount(raw || null);
     } catch (err) {
-      setAccount(null); // user may not have account yet
+      setAccount(null);
     } finally {
       setLoading(false);
     }
@@ -27,7 +31,7 @@ export default function UserDashboard() {
 
   function handleLogout() {
     logout();
-    toast.success("Logged out successfully.");
+    toast.success("Logged out successfully.", { theme: "dark" });
     navigate("/login");
   }
 
@@ -36,7 +40,10 @@ export default function UserDashboard() {
       {/* NAVBAR */}
       <nav
         className="navbar navbar-dark px-4"
-        style={{ background: "#161b22", borderBottom: "1px solid #30363d" }}
+        style={{
+          background: "#161b22",
+          borderBottom: "1px solid #30363d",
+        }}
       >
         <span className="navbar-brand fw-bold" style={{ color: "#58a6ff" }}>
           🏦 User Dashboard
@@ -55,14 +62,14 @@ export default function UserDashboard() {
         {/* LOADING */}
         {loading && <p className="text-center text-light fs-5">Loading...</p>}
 
-        {/* USER WITH NO ACCOUNT */}
+        {/* USER HAS NO BANK ACCOUNT */}
         {!loading && !account && (
           <div className="text-center">
             <p className="text-secondary fs-5">
               You don't have a bank account yet.
             </p>
             <button
-              className="btn btn-info px-4 py-2 fw-semibold"
+              className="btn btn-info fw-semibold px-4 py-2"
               onClick={() => navigate("/user/create-account")}
             >
               Create Bank Account
@@ -70,7 +77,7 @@ export default function UserDashboard() {
           </div>
         )}
 
-        {/* USER WITH ACCOUNT */}
+        {/* USER HAS BANK ACCOUNT */}
         {account && (
           <div
             className="p-4 rounded shadow-lg text-light mx-auto"
@@ -88,7 +95,8 @@ export default function UserDashboard() {
             <p className="mb-2">
               <strong>Account Number:</strong> {account.accountNumber}
             </p>
-            <p className="mb-2">
+
+            <p className="mb-4">
               <strong>Status:</strong>{" "}
               {account.blocked
                 ? "❌ Blocked"
@@ -96,38 +104,60 @@ export default function UserDashboard() {
                 ? "✅ Active"
                 : "⏳ Pending"}
             </p>
-            <p className="mb-4">
-              <strong>Balance:</strong> ₹{account.balance}
-            </p>
 
             {/* ACTION BUTTONS */}
-            <button
-              className="btn btn-outline-info w-100 mb-3"
-              onClick={() => navigate("/user/check-balance")}
-            >
-              Check Balance
-            </button>
+            {/* ACTION BUTTONS */}
+            <div className="mt-4">
+              {account.blocked && (
+                <p className="text-danger fw-bold text-center mb-3">
+                  ⚠️ This account is blocked. Actions are disabled.
+                </p>
+              )}
 
-            <button
-              className="btn btn-outline-success w-100 mb-3"
-              onClick={() => navigate("/user/deposit")}
-            >
-              Deposit
-            </button>
+              <button
+                className="btn btn-outline-info w-100 mb-3"
+                disabled={account.blocked}
+                style={
+                  account.blocked ? { opacity: 0.5, cursor: "not-allowed" } : {}
+                }
+                onClick={() => navigate("/user/check-balance")}
+              >
+                Check Balance
+              </button>
 
-            <button
-              className="btn btn-outline-warning w-100"
-              onClick={() => navigate("/user/transfer")}
-            >
-              Transfer Money
-            </button>
+              <button
+                className="btn btn-outline-success w-100 mb-3"
+                disabled={account.blocked}
+                style={
+                  account.blocked ? { opacity: 0.5, cursor: "not-allowed" } : {}
+                }
+                onClick={() => navigate("/user/deposit")}
+              >
+                Deposit Money
+              </button>
 
-            <button
-              className="btn btn-outline-light w-100 mb-3"
-              onClick={() => navigate("/user/transactions")}
-            >
-              View Transactions
-            </button>
+              <button
+                className="btn btn-outline-warning w-100 mb-3"
+                disabled={account.blocked}
+                style={
+                  account.blocked ? { opacity: 0.5, cursor: "not-allowed" } : {}
+                }
+                onClick={() => navigate("/user/transfer")}
+              >
+                Transfer Money
+              </button>
+
+              <button
+                className="btn btn-outline-light w-100"
+                disabled={account.blocked}
+                style={
+                  account.blocked ? { opacity: 0.5, cursor: "not-allowed" } : {}
+                }
+                onClick={() => navigate("/user/transactions")}
+              >
+                View Transactions
+              </button>
+            </div>
           </div>
         )}
       </div>

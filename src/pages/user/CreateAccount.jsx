@@ -23,8 +23,6 @@ export default function CreateAccount() {
         pan,
         aadhar,
       });
-
-      toast.success("Account created successfully!", { theme: "dark" });
       navigate("/user/dashboard");
     } catch (err) {
       // errors handled globally

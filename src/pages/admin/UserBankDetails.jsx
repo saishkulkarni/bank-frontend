@@ -19,9 +19,16 @@ export default function UserBankDetails() {
 
     try {
       const res = await api.get(`/api/v1/admin/bank/${email}`);
-      setAccount(res.data.data);
-    } catch {
-      // handled globally
+
+      console.log("RAW ACCOUNT RESPONSE:", res.data);
+
+      // backend may send raw object OR {message, data}
+      const data = res.data && res.data.data ? res.data.data : res.data;
+
+      setAccount(data);
+    } catch (err) {
+      console.log("ERROR:", err);
+      setAccount(null);
     } finally {
       setLoading(false);
     }
@@ -45,7 +52,6 @@ export default function UserBankDetails() {
 
   return (
     <div style={{ background: "#0d1117", minHeight: "100vh" }}>
-      {/* NAVBAR */}
       <nav
         className="navbar navbar-dark px-4"
         style={{ background: "#161b22", borderBottom: "1px solid #30363d" }}
@@ -102,12 +108,21 @@ export default function UserBankDetails() {
               <strong>Balance:</strong> ₹{account.balance}
             </p>
 
+            <p className="opacity-75">
+              <strong>IFSC:</strong> {account.ifscCode}
+            </p>
+
+            <p className="opacity-75">
+              <strong>Branch:</strong> {account.branch}
+            </p>
+
             <div className="d-flex gap-2 mt-4">
-              {/* View Transactions */}
               <button
                 className="btn flex-grow-1 fw-semibold"
                 onClick={() =>
-                  navigate(`/admin/transactions/${account.accountNumber}`)
+                  navigate(
+                    `/admin/transactions/${account.accountNumber}?email=${email}`
+                  )
                 }
                 style={{
                   background: "#238636",
@@ -118,7 +133,6 @@ export default function UserBankDetails() {
                 Transactions
               </button>
 
-              {/* Block / Unblock */}
               <button
                 className="btn flex-grow-1 fw-semibold"
                 onClick={toggleBlock}

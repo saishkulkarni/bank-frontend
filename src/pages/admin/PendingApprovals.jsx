@@ -18,14 +18,16 @@ export default function PendingApprovals() {
     try {
       const res = await api.get("/api/v1/admin/banks/pending");
 
-      let data = res.data.data;
+      console.log("RAW RESPONSE:", res.data);
 
-      if (data && !Array.isArray(data)) {
-        data = [data];
-      }
+      // backend returns ARRAY directly
+      const arr = Array.isArray(res.data) ? res.data : [];
 
-      setPending(data || []);
+      console.log("FINAL ARRAY:", arr);
+
+      setPending(arr);
     } catch (err) {
+      console.log("ERROR:", err);
       setPending([]);
     } finally {
       setLoading(false);
@@ -34,9 +36,7 @@ export default function PendingApprovals() {
 
   async function approve(accountNumber) {
     try {
-      await api.patch("/api/v1/admin/approve/saving", {
-        accountNumber,
-      });
+      await api.patch("/api/v1/admin/approve/saving", { accountNumber });
 
       toast.success("Account Approved Successfully 🎉", { theme: "dark" });
 
@@ -44,7 +44,7 @@ export default function PendingApprovals() {
     } catch {}
   }
 
-  const empty = !pending || pending.length === 0;
+  const empty = pending.length === 0;
 
   return (
     <div style={{ background: "#0d1117", minHeight: "100vh" }}>
@@ -67,6 +67,7 @@ export default function PendingApprovals() {
         <span></span>
       </nav>
 
+      {/* CONTENT */}
       <div className="container py-5">
         <h3
           className="text-center fw-bold mb-4"
@@ -76,7 +77,7 @@ export default function PendingApprovals() {
         </h3>
 
         {loading ? (
-          <p className="text-center text-light">Loading...</p>
+          <p className="text-center text-light fs-5">Loading...</p>
         ) : empty ? (
           <p className="text-center text-secondary fs-5">
             🎉 No pending accounts
@@ -100,14 +101,25 @@ export default function PendingApprovals() {
                   <p className="mb-1 opacity-75">
                     <strong>Name:</strong> {acc.fullName}
                   </p>
+
                   <p className="mb-1 opacity-75">
                     <strong>Address:</strong> {acc.address}
                   </p>
+
                   <p className="mb-1 opacity-75">
-                    <strong>PAN:</strong> {acc.pan}
+                    <strong>PAN:</strong> {acc.panNumber}
                   </p>
+
+                  <p className="mb-1 opacity-75">
+                    <strong>Aadhar:</strong> {acc.aadharNumber}
+                  </p>
+
+                  <p className="mb-1 opacity-75">
+                    <strong>IFSC:</strong> {acc.ifscCode}
+                  </p>
+
                   <p className="mb-3 opacity-75">
-                    <strong>Aadhar:</strong> {acc.aadhar}
+                    <strong>Branch:</strong> {acc.branch}
                   </p>
 
                   <button
@@ -119,7 +131,7 @@ export default function PendingApprovals() {
                       boxShadow: "0 0 10px rgba(35,134,54,0.4)",
                     }}
                   >
-                    Approve
+                    Approve Account
                   </button>
                 </div>
               </div>

@@ -18,7 +18,7 @@ export default function UserTransactions() {
     try {
       const res = await api.get("/api/v1/user/account/bank");
 
-      const acc = res.data.data;
+      const acc = res.data;
       setAccountNumber(acc.accountNumber);
 
       const list = Array.isArray(acc.bankTransactions)
@@ -94,20 +94,20 @@ export default function UserTransactions() {
                     <strong>Amount:</strong> ₹{tx.amount}
                   </p>
                   <p className="mb-1 opacity-75">
-                    <strong>Before:</strong> ₹{tx.prevBalance}
+                    <strong>Before:</strong> ₹{tx.balanceBeforeTransaction}
                   </p>
                   <p className="mb-1 opacity-75">
-                    <strong>After:</strong> ₹{tx.newBalance}
+                    <strong>After:</strong> ₹{tx.balanceAfterTransaction}
                   </p>
 
                   <p className="mb-1 opacity-75">
-                    <strong>Txn ID:</strong> {tx.transactionId || "N/A"}
+                    <strong>Txn ID:</strong> {tx.payment_id || "N/A"}
                   </p>
 
                   <p className="mb-1 opacity-75">
                     <strong>Date:</strong>{" "}
-                    {tx.timestamp
-                      ? new Date(tx.timestamp).toLocaleString()
+                    {tx.createdTime
+                      ? new Date(tx.createdTime).toLocaleString()
                       : "N/A"}
                   </p>
                 </div>
